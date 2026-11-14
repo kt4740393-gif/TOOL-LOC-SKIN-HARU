@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hệ Thống Lọc Acc Liên Quân - Admin Haru</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-color: #080a10;
+        --bg-color-2: #0c0f17;
+        --container-bg: #10141c;
+        --text-color: #e7ecf3;
+        --sub-text: #8a92ab;
+        --border-color: #202738;
+        --border-color-soft: #1a2030;
+        --input-bg: #0c0f17;
+        --textarea-bg: #070a10;
+        --panel-bg: #0c0f17;
+        --card-bg: #131824;
+        --accent: #2dd4a8;
+        --accent-dim: rgba(45, 212, 168, 0.12);
+        --amber: #f5a623;
+        --purple: #c084fc;
+        --pink: #f472b6;
+        --rose: #f43f5e;
+        --blue: #4f8cff;
+        --shadow-color: rgba(0,0,0,0.55);
+    }
+
+    .light-mode {
+        --bg-color: #eef1f6;
+        --bg-color-2: #e7ebf2;
+        --container-bg: #ffffff;
+        --text-color: #1a2234;
+        --sub-text: #65708a;
+        --border-color: #d7dce6;
+        --border-color-soft: #e2e6ee;
+        --input-bg: #f5f7fb;
+        --textarea-bg: #f3f5f9;
+        --panel-bg: #f5f7fb;
+        --card-bg: #f6f8fc;
+        --accent: #0d9d78;
+        --accent-dim: rgba(13, 157, 120, 0.1);
+        --shadow-color: rgba(30,40,60,0.1);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+        background:
+            radial-gradient(900px 500px at 15% -10%, rgba(45,212,168,0.07), transparent 60%),
+            radial-gradient(700px 500px at 110% 10%, rgba(79,140,255,0.06), transparent 60%),
+            var(--bg-color);
+        color: var(--text-color);
+        padding: 28px 16px 60px;
+        transition: background 0.3s, color 0.3s;
+        position: relative;
+        min-height: 100vh;
+        overflow-x: hidden;
+        margin: 0;
+    }
+
+    /* ================= MÀN HÌNH INTRO HACKER CHUẨN CODE ================= */
+    #hackerIntro {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: #000000;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        transition: transform 0.9s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.9s ease;
+    }
+
+    #hackerIntro.hide-intro {
+        transform: translateY(-100%);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    #matrixCanvas {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 1;
+    }
+
+    .intro-text-box {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        background: rgba(3, 7, 3, 0.85);
+        padding: 35px 70px;
+        border: 2px solid #00ff41;
+        box-shadow: 0 0 40px rgba(0, 255, 65, 0.7), inset 0 0 25px rgba(0, 255, 65, 0.4);
+        border-radius: 10px;
+        opacity: 0;
+        transform: scale(0.75);
+        transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .intro-text-box.show-title {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .intro-title {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 58px;
+        font-weight: 900;
+        color: #00ff41;
+        letter-spacing: 8px;
+        text-transform: uppercase;
+        text-shadow: 0 0 12px #00ff41, 0 0 30px #00ff41, 0 0 50px #008f11, 0 0 70px #00550a;
+        margin: 0;
+        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
+    }
+
+    .intro-sub {
+        font-family: 'Courier New', Courier, monospace;
+        color: #a7f3d0;
+        font-size: 14px;
+        margin-top: 12px;
+        letter-spacing: 3px;
+        font-weight: bold;
+    }
+    /* ====================================================================== */
+
+    /* Hiệu ứng tuyết rơi */
+    .snowflake { position: fixed; top: -10px; background: rgba(255, 255, 255, 0.8); border-radius: 50%; pointer-events: none; animation: fall linear infinite; z-index: 999; }
+    .light-mode .snowflake { background: rgba(148, 163, 184, 0.6); }
+    @keyframes fall {
+        0% { transform: translateY(-10px) translateX(0); opacity: 1; }
+        100% { transform: translateY(105vh) translateX(20px); opacity: 0.2; }
+    }
+
+    .container {
+        max-width: 1120px;
+        margin: 0 auto;
+        background: var(--container-bg);
+        padding: 0;
+        border-radius: 18px;
+        box-shadow: 0 20px 50px var(--shadow-color);
+        border: 1px solid var(--border-color);
+        position: relative;
+        z-index: 2;
+        overflow: hidden;
+        transition: background 0.3s, border 0.3s;
+    }
+
+    /* Top Bar */
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 16px 28px;
+        background: var(--bg-color-2);
+        border-bottom: 1px solid var(--border-color);
+    }
+    .real-time {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--amber);
+        background: rgba(245, 158, 11, 0.1);
+        padding: 7px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .real-time::before {
+        content: '';
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: var(--amber);
+        box-shadow: 0 0 8px var(--amber);
+        animation: blink 1.6s ease-in-out infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+    .theme-switcher { display: flex; gap: 4px; background: var(--input-bg); padding: 4px; border-radius: 10px; border: 1px solid var(--border-color); }
+    .theme-btn { background: transparent; border: none; padding: 7px 13px; border-radius: 7px; cursor: pointer; font-size: 15px; transition: 0.2s; display: flex; align-items: center; justify-content: center; color: var(--sub-text); }
+    .theme-btn.active { background: var(--accent); box-shadow: 0 2px 10px var(--accent-dim); color: #081310; }
+    .theme-btn:hover:not(.active) { background: rgba(255,255,255,0.06); }
+
+    /* Header brand */
+    .header-brand { padding: 26px 28px 6px; }
+    .header-brand h2 {
+        margin: 0 0 10px 0;
+        font-size: 23px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .header-brand h2::before {
+        content: '';
+        width: 9px; height: 9px;
+        border-radius: 2px;
+        background: var(--accent);
+        box-shadow: 0 0 10px var(--accent-dim);
+        display: inline-block;
+        transform: rotate(45deg);
+    }
+    .brand-credit {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12.5px;
+        font-weight: 500;
+        color: var(--accent);
+        background: var(--accent-dim);
+        padding: 6px 12px;
+        border-radius: 7px;
+        border: 1px solid rgba(45, 212, 168, 0.3);
+    }
+
+    /* Dashboard thống kê tương tác */
+    .stats-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin: 18px 28px 0; }
+    .stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color-soft);
+        padding: 15px 14px 13px;
+        border-radius: 12px;
+        transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        position: relative;
+        cursor: pointer;
+    }
+    .stat-card:hover { transform: translateY(-3px); border-color: var(--dot-color, var(--accent)); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .stat-card.active-filter {
+        border: 2px solid var(--dot-color, var(--accent));
+        background: rgba(255, 255, 255, 0.03);
+        box-shadow: 0 0 15px var(--accent-dim);
+    }
+    .stat-title {
+        font-size: 11.5px;
+        color: var(--sub-text);
+        font-weight: 500;
+        margin-bottom: 9px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+    .stat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; line-height: 1; }
+    .val-total { color: var(--blue); } .stat-card:nth-child(1) { --dot-color: var(--blue); }
+    .val-clean { color: var(--accent); } .stat-card:nth-child(2) { --dot-color: var(--accent); }
+    .val-banned { color: var(--rose); } .stat-card:nth-child(3) { --dot-color: var(--rose); }
+    .val-sss { color: var(--purple); } .stat-card:nth-child(4) { --dot-color: var(--purple); }
+    .val-ss { color: var(--amber); } .stat-card:nth-child(5) { --dot-color: var(--amber); }
+    .val-anime { color: var(--pink); } .stat-card:nth-child(6) { --dot-color: var(--pink); }
+
+    /* Upload + input */
+    .section-block { padding: 22px 28px 0; }
+    .upload-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .upload-label { font-weight: 600; font-size: 14px; color: var(--text-color); white-space: nowrap; }
+
+    input[type="text"], input[type="file"] {
+        padding: 11px 14px;
+        border-radius: 9px;
+        border: 1px solid var(--border-color);
+        background: var(--input-bg);
+        color: var(--text-color);
+        font-size: 14px;
+        font-family: inherit;
+    }
+    input[type="text"]:focus, input[type="file"]:focus { outline: none; border-color: var(--accent); }
+    input[type="file"] { flex: 1; min-width: 220px; cursor: pointer; }
+    input[type="file"]::file-selector-button {
+        background: var(--accent); color: #081310; border: none; padding: 7px 12px;
+        border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 10px; font-family: inherit;
+    }
+
+    .input-group { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    input#keywordInput { flex: 1; min-width: 280px; }
+
+    .btn-action {
+        padding: 11px 20px;
+        border-radius: 9px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+        font-size: 14px;
+        font-family: inherit;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        white-space: nowrap;
+    }
+    .btn-action:active { transform: translateY(1px); }
+    .btn-filter { background: var(--blue); color: white; }
+    .btn-filter:hover { background: #3f78ea; box-shadow: 0 4px 14px rgba(79,140,255,0.35); }
+    .btn-download { background: var(--accent); color: #081310; }
+    .btn-download:hover { filter: brightness(1.08); box-shadow: 0 4px 14px var(--accent-dim); }
+    .btn-copy { background: var(--purple); color: white; }
+    .btn-copy:hover { background: #a855f7; box-shadow: 0 4px 14px rgba(168,85,247,0.35); }
+
+    /* Options / toggles */
+    .options {
+        margin: 18px 0 0;
+        background: var(--panel-bg);
+        padding: 14px 18px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color-soft);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .option-row { display: flex; align-items: center; gap: 12px; font-size: 13.5px; line-height: 1.5; cursor: pointer; }
+    .option-row b { color: var(--text-color); }
+
+    .switch { position: relative; width: 38px; height: 22px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .switch .track {
+        position: absolute; inset: 0; background: var(--border-color);
+        border-radius: 999px; transition: background 0.2s;
+    }
+    .switch .track::before {
+        content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px;
+        background: #fff; border-radius: 50%; transition: transform 0.2s;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .switch input:checked + .track { background: var(--accent); }
+    .switch input:checked + .track::before { transform: translateX(16px); }
+
+    /* Khu vực hiển thị kết quả */
+    .results-grid { display: grid; grid-template-columns: 1fr; gap: 18px; padding: 22px 28px 28px; }
+    .result-section { display: flex; flex-direction: column; gap: 8px; }
+    .result-header { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 13.5px; color: var(--sub-text); }
+
+    textarea {
+        width: 100%; height: 200px;
+        background: var(--textarea-bg);
+        color: var(--accent);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 14px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12.5px;
+        line-height: 1.6;
+        box-sizing: border-box;
+        resize: vertical;
+    }
+    textarea:focus { outline: none; border-color: var(--accent); }
+    .light-mode textarea { color: #0b7a5b; }
+
+    /* Toast Notifications */
+    #toastContainer { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+    .toast {
+        min-width: 280px; max-width: 350px;
+        background: #161b28; color: #fff;
+        padding: 14px 18px; border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+        border-left: 4px solid var(--blue);
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 13.5px; font-weight: 500;
+        display: flex; align-items: center; gap: 10px;
+        animation: slideIn 0.3s ease-out forwards;
+        position: relative; overflow: hidden;
+    }
+    .toast.success { border-left-color: var(--accent); }
+    .toast.error { border-left-color: var(--rose); }
+    .toast.warning { border-left-color: var(--amber); }
+    @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { to { transform: translateX(120%); opacity: 0; } }
+
+    @media (min-width: 760px) {
+        .results-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 960px) {
+        .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 600px) {
+        body { padding: 14px 10px 50px; }
+        .stats-grid { grid-template-columns: repeat(2, 1fr); margin: 16px 16px 0; }
+        .header-brand, .section-block { padding-left: 18px; padding-right: 18px; }
+        .top-bar { padding: 14px 18px; }
+        .results-grid { padding: 18px 18px 22px; }
+        .intro-title { font-size: 34px; }
+        .intro-text-box { padding: 20px 30px; }
+    }
+</style>
+</head>
+<body>
+
+<!-- MÀN HÌNH CHÀO SÂN HACKER INTRO -->
+<div id="hackerIntro">
+    <canvas id="matrixCanvas"></canvas>
+    <div class="intro-text-box" id="introBox">
+        <h1 class="intro-title">ADMIN HARU</h1>
+        <div class="intro-sub">[ SECURE SYSTEM INITIALIZED // AUTHORIZED ACCESS ]</div>
+    </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<div class="container">
+    <div class="top-bar">
+        <div id="realTimeClock" class="real-time">Đang tải thời gian...</div>
+        <div class="theme-switcher" title="Chuyển đổi giao diện Sáng / Tối">
+            <button id="btnDark" class="theme-btn active" onclick="setTheme('dark')" title="Giao diện Tối">🌙</button>
+            <button id="btnLight" class="theme-btn" onclick="setTheme('light')" title="Giao diện Sáng">☀️</button>
+        </div>
+    </div>
+
+    <div class="header-brand">
+        <h2>Hệ Thống Lọc Acc Liên Quân Mobile</h2>
+        <div class="brand-credit">⚡ Tool được làm bởi Haru-Admin Triệu Huy Khánh</div>
+    </div>
+
+    <!-- 6 Ô THỐNG KÊ TƯƠNG TÁC -->
+    <div class="stats-grid">
+        <div class="stat-card" id="cardTotal" onclick="filterByStat('total')" title="Xem tất cả tài khoản quét">
+            <div class="stat-title"><span class="stat-dot" style="background:var(--blue)"></span>Tổng Acc Quét</div>
+            <div class="stat-value val-total" id="statTotal">0</div>
+        </div>
+        <div class="stat-card active-filter" id="cardMatched" onclick="filterByStat('matched')" title="Xem danh sách acc đạt chuẩn">
+            <div class="stat-title"><span class="stat-dot" style="background:var(--accent)"></span>Acc Đạt Chuẩn</div>
+            <div class="stat-value val-clean" id="statMatched">0</div>
+        </div>
+        <div class="stat-card" id="cardRejected" onclick="filterByStat('rejected')" title="Xem danh sách acc bị loại / dính ban">
+            <div class="stat-title"><span class="stat-dot" style="background:var(--rose)"></span>Bị Loại / Dính Ban</div>
+            <div class="stat-value val-banned" id="statRejected">0</div>
+        </div>
+        <div class="stat-card" id="cardSSS" onclick="filterByStat('sss')" title="Click để xem danh sách acc có Skin SSS">
+            <div class="stat-title"><span class="stat-dot" style="background:var(--purple)"></span>Có Skin SSS</div>
+            <div class="stat-value val-sss" id="statSSS">0</div>
+        </div>
+        <div class="stat-card" id="cardSS" onclick="filterByStat('ss')" title="Click để xem danh sách acc có Skin SS">
+            <div class="stat-title"><span class="stat-dot" style="background:var(--amber)"></span>Có Skin SS</div>
+            <div class="stat-value val-ss" id="statSS">0</div>
+        </div>
+        <div class="stat-card" id="cardAnime" onclick="filterByStat('anime')" title="Click để xem danh sách acc có Skin Anime">
+            <div class="stat-title"><span class="stat-dot" style="background:var(--pink)"></span>Có Skin Anime</div>
+            <div class="stat-value val-anime" id="statAnime">0</div>
+        </div>
+    </div>
+
+    <div class="section-block">
+        <div class="upload-row">
+            <label class="upload-label" for="fileInput">Chọn file danh sách acc (.txt)</label>
+            <input type="file" id="fileInput" accept=".txt">
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="keywordInput" placeholder="Nhập tên skin cần tìm (vd: Nakroth Thứ Nguyên Vệ Thần)...">
+            <button class="btn-action btn-filter" onclick="filterAcc()">🔍 Bắt Đầu Lọc</button>
+            <button class="btn-action btn-download" onclick="downloadResult()">⬇ Tải File Kết Quả</button>
+        </div>
+
+        <div class="options">
+            <label class="option-row">
+                <span class="switch"><input type="checkbox" id="chkStrictBand" checked><span class="track"></span></span>
+                Chỉ lấy acc sạch, tuyệt đối không dính ban (<b>| BAND : NO |</b>)
+            </label>
+            <label class="option-row">
+                <span class="switch"><input type="checkbox" id="chkAllKeywords"><span class="track"></span></span>
+                Bắt buộc có <b>TẤT CẢ</b> các từ khóa skin (bỏ tick = chỉ cần có 1 trong các skin)
+            </label>
+            <label class="option-row">
+                <span class="switch"><input type="checkbox" id="chkCleanOnly"><span class="track"></span></span>
+                Lọc thêm điều kiện: Không dính Số / SĐT (<b>SĐT : NO</b> hoặc <b>ACC TRẮNG THÔNG TIN</b>)
+            </label>
+        </div>
+    </div>
+
+    <div class="results-grid">
+        <!-- Ô 1: Kết quả Chi Tiết Đầy Đủ Thông Tin -->
+        <div class="result-section">
+            <div class="result-header">
+                <span id="resultTitle">📄 Danh sách Acc Đạt Chuẩn</span>
+            </div>
+            <textarea id="outputArea" readonly placeholder="Kết quả chi tiết đầy đủ sẽ hiển thị ở đây..."></textarea>
+        </div>
+
+        <!-- Ô 2: Kết quả Rút Gọn TK|MK -->
+        <div class="result-section">
+            <div class="result-header">
+                <span>🔑 Tài khoản | Mật khẩu (Rút Gọn)</span>
+                <button class="btn-action btn-copy" style="padding: 5px 12px; font-size: 12px;" onclick="copyShortList()">📋 Copy Nhanh</button>
+            </div>
+            <textarea id="outputShort" readonly placeholder="Danh sách tài khoản | mật khẩu rút gọn sẽ hiển thị ở đây..."></textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ================= HÀM PHÁT ÂM THANH GIỌNG NÓI AI =================
+    function speakWelcomeMessage() {
+        if ('speechSynthesis' in window) {
+            const text = "Tool được làm bởi Haru, không thể sao lưu dữ liệu nên mọi người cứ yên tâm mà sử dụng.";
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'vi-VN'; // Đặt giọng đọc tiếng Việt
+            utterance.rate = 1.0;   // Tốc độ đọc
+            utterance.pitch = 1.0;  // Tông giọng
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    // ================= TỰ ĐỘNG HIỆN THÔNG BẢO GÓC TRÊN BÊN PHẢI =================
+    function triggerRandomThankYouToast() {
+        showToast("CẢM ƠN VÌ BẠN ĐÃ TIN TƯỞNG ❤️", "success");
+    }
+
+    // ================= LOGIC HIỆU ỨNG HACKER INTRO =================
+    (function runHackerIntro() {
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const codePhrases = [
+            "SYS_BOOT_SEQUENCE_OK", "DECRYPTING_GAMES_DATABASE", "BYPASS_FIREWALL_v4.2",
+            "CONNECTING_GARENA_SERVER", "LOADING_SKINS_INDEX", "VERIFYING_ADMIN_HARU",
+            "ACCESS_GRANTED_0x99", "CHECKING_BAN_STATUS", "PARSING_PIPE_DELIMITER",
+            "SECURE_TUNNEL_ESTABLISHED", "STATUS_CLEAN_ACC", "INITIALIZING_GUI..."
+        ];
+
+        const fontSize = 14;
+        const columns = Math.floor(canvas.width / (fontSize * 10));
+        const drops = Array(columns).fill(1);
+        const phrasesInCol = Array(columns).fill(0).map(() => codePhrases[Math.floor(Math.random() * codePhrases.length)]);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#00ff41';
+            ctx.font = 'bold ' + fontSize + 'px Courier New';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = phrasesInCol[i];
+                ctx.fillText(text, i * (fontSize * 10), drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.95) {
+                    drops[i] = 0;
+                    phrasesInCol[i] = codePhrases[Math.floor(Math.random() * codePhrases.length)];
+                }
+                drops[i] += 1.5;
+            }
+        }
+
+        const matrixInterval = setInterval(drawMatrix, 35);
+
+        setTimeout(() => {
+            document.getElementById('introBox').classList.add('show-title');
+        }, 800);
+
+        setTimeout(() => {
+            const introScreen = document.getElementById('hackerIntro');
+            introScreen.classList.add('hide-intro');
+
+            // Khi intro vừa rút xong, phát giọng nói AI chào mừng
+            speakWelcomeMessage();
+
+            // Lên lịch cứ sau mỗi 20 giây sẽ tự động hiện thông báo cảm ơn ngẫu nhiên ở góc phải
+            setInterval(triggerRandomThankYouToast, 20000);
+
+            setTimeout(() => {
+                clearInterval(matrixInterval);
+                introScreen.remove();
+            }, 900);
+        }, 6000);
+    })();
+    // ===================================================================
+
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        let icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+        toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.animation = 'fadeOut 0.3s ease-in forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3200);
+    }
+
+    function updateClock() {
+        const now = new Date();
+        const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        document.getElementById('realTimeClock').innerText = `🕒 ${days[now.getDay()]}, ${now.toLocaleDateString('vi-VN')} - ${now.toLocaleTimeString('vi-VN')}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function setTheme(mode) {
+        const btnDark = document.getElementById('btnDark');
+        const btnLight = document.getElementById('btnLight');
+        if (mode === 'light') {
+            document.body.classList.add('light-mode');
+            btnLight.classList.add('active');
+            btnDark.classList.remove('active');
+            showToast('Đã chuyển sang giao diện Sáng ☀️', 'info');
+        } else {
+            document.body.classList.remove('light-mode');
+            btnDark.classList.add('active');
+            btnLight.classList.remove('active');
+            showToast('Đã chuyển sang giao diện Tối 🌙', 'info');
+        }
+    }
+
+    function createSnowflake() {
+        const snow = document.createElement('div');
+        snow.classList.add('snowflake');
+        snow.style.left = Math.random() * window.innerWidth + 'px';
+        snow.style.top = '-10px';
+        const size = Math.random() * 4 + 2 + 'px';
+        snow.style.width = size;
+        snow.style.height = size;
+        snow.style.opacity = Math.random() * 0.6 + 0.3;
+        snow.style.animationDuration = Math.random() * 5 + 3 + 's';
+        document.body.appendChild(snow);
+        setTimeout(() => snow.remove(), 8000);
+    }
+    setInterval(createSnowflake, 220);
+
+    let fileLines = [];
+    let cachedAllLines = [];
+    let cachedMatchedLines = [];
+    let cachedRejectedLines = [];
+    let cachedSSSLines = [];
+    let cachedSSLines = [];
+    let cachedAnimeLines = [];
+    let currentActiveType = 'matched';
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            fileLines = e.target.result.split(/\r?\n/).filter(line => line.trim() !== '');
+            filterAcc();
+            showToast(`Đã tải lên thành công ${fileLines.length.toLocaleString()} tài khoản!`, 'success');
+        };
+        reader.readAsText(file);
+    });
+
+    function getSkinCategoryCount(line, key) {
+        const regex = new RegExp('\\|\\s*' + key + '\\s*:\\s*([0-9]+)', 'i');
+        const match = line.match(regex);
+        return match && match[1] ? parseInt(match[1], 10) : 0;
+    }
+
+    function filterAcc() {
+        if (fileLines.length === 0) {
+            showToast("Vui lòng chọn file .txt trước nhé Khánh ơi!", "warning");
+            return;
+        }
+
+        const strictBand = document.getElementById('chkStrictBand').checked;
+        const cleanOnly = document.getElementById('chkCleanOnly').checked;
+        const rawKeywords = document.getElementById('keywordInput').value.trim();
+        const keywords = rawKeywords ? rawKeywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k !== '') : [];
+        const matchAll = document.getElementById('chkAllKeywords').checked;
+
+        cachedAllLines = [...fileLines];
+        cachedMatchedLines = [];
+        cachedRejectedLines = [];
+        cachedSSSLines = [];
+        cachedSSLines = [];
+        cachedAnimeLines = [];
+
+        fileLines.forEach(line => {
+            const upperLine = line.toUpperCase();
+            const lowerLine = line.toLowerCase();
+
+            let isBanned = false;
+            if (upperLine.includes("BAND : YES") || !upperLine.includes("BAND : NO")) {
+                isBanned = true;
+            }
+
+            let isDirty = false;
+            if (lowerLine.includes('acc dính số') || lowerLine.includes('sđt : yes') || lowerLine.includes('email : yes')) {
+                isDirty = true;
+            }
+
+            let matchesKeyword = true;
+            if (keywords.length > 0) {
+                matchesKeyword = matchAll
+                    ? keywords.every(kw => lowerLine.includes(kw))
+                    : keywords.some(kw => lowerLine.includes(kw));
+            }
+
+            let isValid = true;
+            if (strictBand && isBanned) isValid = false;
+            if (cleanOnly && isDirty) isValid = false;
+            if (!matchesKeyword) isValid = false;
+
+            if (isValid) {
+                cachedMatchedLines.push(line);
+                if (getSkinCategoryCount(line, 'SSS') > 0) cachedSSSLines.push(line);
+                if (getSkinCategoryCount(line, 'SS') > 0) cachedSSLines.push(line);
+                if (getSkinCategoryCount(line, 'ANIME') > 0) cachedAnimeLines.push(line);
+            } else {
+                cachedRejectedLines.push(line);
+            }
+        });
+
+        document.getElementById('statTotal').innerText = cachedAllLines.length.toLocaleString();
+        document.getElementById('statMatched').innerText = cachedMatchedLines.length.toLocaleString();
+        document.getElementById('statRejected').innerText = cachedRejectedLines.length.toLocaleString();
+        document.getElementById('statSSS').innerText = cachedSSSLines.length.toLocaleString();
+        document.getElementById('statSS').innerText = cachedSSLines.length.toLocaleString();
+        document.getElementById('statAnime').innerText = cachedAnimeLines.length.toLocaleString();
+
+        filterByStat('matched');
+        showToast(`Lọc hoàn tất! Tìm thấy ${cachedMatchedLines.length.toLocaleString()} acc đạt chuẩn.`, 'success');
+    }
+
+    function filterByStat(type) {
+        currentActiveType = type;
+        document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active-filter'));
+        
+        let targetLines = [];
+        let titleText = '';
+
+        if (type === 'total') {
+            document.getElementById('cardTotal').classList.add('active-filter');
+            targetLines = cachedAllLines;
+            titleText = '📄 Toàn bộ Danh sách Quét (Tổng)';
+        } else if (type === 'matched') {
+            document.getElementById('cardMatched').classList.add('active-filter');
+            targetLines = cachedMatchedLines;
+            titleText = '📄 Danh sách Acc Đạt Chuẩn';
+        } else if (type === 'rejected') {
+            document.getElementById('cardRejected').classList.add('active-filter');
+            targetLines = cachedRejectedLines;
+            titleText = '📄 Danh sách Acc Bị Loại / Dính Ban';
+        } else if (type === 'sss') {
+            document.getElementById('cardSSS').classList.add('active-filter');
+            targetLines = cachedSSSLines;
+            titleText = '📄 Danh sách Acc có Skin SSS';
+        } else if (type === 'ss') {
+            document.getElementById('cardSS').classList.add('active-filter');
+            targetLines = cachedSSLines;
+            titleText = '📄 Danh sách Acc có Skin SS';
+        } else if (type === 'anime') {
+            document.getElementById('cardAnime').classList.add('active-filter');
+            targetLines = cachedAnimeLines;
+            titleText = '📄 Danh sách Acc có Skin Anime';
+        }
+
+        document.getElementById('resultTitle').innerText = `${titleText} (${targetLines.length.toLocaleString()} acc)`;
+        document.getElementById('outputArea').value = targetLines.join('\n');
+
+        const shortList = targetLines.map(line => {
+            const parts = line.split('|');
+            if (parts.length >= 2) {
+                return `${parts[0].trim()}|${parts[1].trim()}`;
+            }
+            return parts[0] ? parts[0].trim() : '';
+        }).filter(item => item !== '');
+
+        document.getElementById('outputShort').value = shortList.join('\n');
+    }
+
+    function copyShortList() {
+        const textarea = document.getElementById('outputShort');
+        const text = textarea.value;
+        if (!text) {
+            showToast("Chưa có danh sách rút gọn để copy!", "warning");
+            return;
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Đã copy danh sách TK|MK vào bộ nhớ tạm!", "success");
+            }).catch(() => {
+                fallbackCopy(textarea);
+            });
+        } else {
+            fallbackCopy(textarea);
+        }
+    }
+
+    function fallbackCopy(textarea) {
+        try {
+            textarea.select();
+            textarea.setSelectionRange(0, 999999);
+            const successful = document.execCommand('copy');
+            if (successful) {
+                showToast("Đã copy danh sách TK|MK thành công!", "success");
+            } else {
+                showToast("Lỗi khi copy!", "error");
+            }
+        } catch (err) {
+            showToast("Trình duyệt không hỗ trợ copy tự động, hãy bôi đen và copy thủ công nhé!", "error");
+        }
+    }
+
+    function downloadResult() {
+        let targetLines = [];
+        if (currentActiveType === 'total') targetLines = cachedAllLines;
+        else if (currentActiveType === 'matched') targetLines = cachedMatchedLines;
+        else if (currentAccessType = 'rejected') targetLines = cachedRejectedLines; // fix fallback
+        if (currentActiveType === 'rejected') targetLines = cachedRejectedLines;
+        else if (currentActiveType === 'sss') targetLines = cachedSSSLines;
+        else if (currentActiveType === 'ss') targetLines = cachedSSLines;
+        else if (currentActiveType === 'anime') targetLines = cachedAnimeLines;
+
+        if (targetLines.length === 0) {
+            showToast("Không có dữ liệu để tải xuống!", "error");
+            return;
+        }
+
+        const content = targetLines.join('\n');
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `acc_${currentActiveType}_HaruAdmin.txt`;
+        link.click();
+        showToast("Đã tải file kết quả về máy thành công!", "success");
+    }
+</script>
+</body>
+</html>
